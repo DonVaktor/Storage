@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    card_view:cardElevation="10dp">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:orientation="vertical">
+
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/email"
+            android:id="@+id/field_email"
+            android:text=""
+            android:inputType="textEmailAddress"
+
+            card_view:met_floatingLabel="normal"
+            card_view:met_baseColor="@color/black"
+            card_view:met_primaryColor="@color/light_purple" />
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/login_text"
+            android:id="@+id/field_login"
+            android:text=""
+            android:inputType="textPersonName"
+
+            card_view:met_floatingLabel="normal"
+            card_view:met_baseColor="@color/black"
+            card_view:met_primaryColor="@color/light_purple" />
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/number_text"
+            android:id="@+id/field_phonenumber"
+            android:text=""
+            android:inputType="text|number"
+
+            card_view:met_floatingLabel="normal"
+            card_view:met_baseColor="@color/black"
+            card_view:met_primaryColor="@color/light_purple" />
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/password_text"
+            android:id="@+id/field_password"
+            android:text=""
+            android:inputType="textPassword"
+
+            card_view:met_floatingLabel="normal"
+            card_view:met_baseColor="@color/black"
+            card_view:met_primaryColor="@color/light_purple" />
+
+
+
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
+

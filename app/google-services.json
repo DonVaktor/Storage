@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "917110865320",
+    "project_id": "storage-1596d",
+    "storage_bucket": "storage-1596d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:917110865320:android:2a24615aef1091f90d719d",
+        "android_client_info": {
+          "package_name": "com.example.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbyD9-SwxgyV2iMCx5aKeuIETPM23auaI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

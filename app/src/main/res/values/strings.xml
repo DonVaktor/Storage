@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Ваш Склад</string>
+    <string name="log_in">Вхід</string>
+    <string name="app_new">Новий користувач?</string>
+    <string name="sign_up">Реєстрація</string>
+    <string name="email">Електронна пошта</string>
+    <string name="login_text">Ім`я</string>
+    <string name="password_text">Пароль</string>
+    <string name="number_text">Номер телефону</string>
+</resources>
