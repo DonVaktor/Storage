@@ -144,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
                     Snackbar.make(root, "Пароль повинен містити щонайменше 5 символів", Snackbar.LENGTH_LONG).show();
                     return;
                 }
+                String hashedPass = PasswordHasher.hashPassword(password.getText().toString()); // хешування паролю
                 auth.createUserWithEmailAndPassword(email.getText().toString(), password.getText().toString())
                         .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                             @Override
@@ -152,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
                                 user.setEmail(email.getText().toString());
                                 user.setNumber(number.getText().toString());
                                 user.setName(name.getText().toString());
-                                user.setPassword(password.getText().toString());
+                                user.setPassword(hashedPass);
 
                                 users.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                                         .setValue(user)
