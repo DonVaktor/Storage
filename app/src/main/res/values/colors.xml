@@ -6,5 +6,6 @@
     <color name="olive">#444c2c</color>
     <color name="light_purple"> #c89cf7</color>
     <color name="middle_gray"> #2b2b2b </color>
+    <color name="light_red"> #e03a40</color>
 
 </resources>
