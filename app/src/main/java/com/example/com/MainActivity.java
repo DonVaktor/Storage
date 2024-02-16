@@ -12,6 +12,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -109,80 +110,121 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog.setTitle("Реєстрація");
         dialog.setMessage("Введіть всі дані");
-        LayoutInflater inflator = LayoutInflater.from(this);
-        View register_window = inflator.inflate(R.layout.register_window, null);
-        dialog.setView(register_window);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View registerWindowView = inflater.inflate(R.layout.register_window, null);
+        dialog.setView(registerWindowView);
 
-        final MaterialEditText email = register_window.findViewById(R.id.field_email);
-        final MaterialEditText name = register_window.findViewById(R.id.field_login);
-        final MaterialEditText number = register_window.findViewById(R.id.field_phonenumber);
-        final MaterialEditText password = register_window.findViewById(R.id.field_password);
+        final MaterialEditText email = registerWindowView.findViewById(R.id.field_email);
+        final MaterialEditText name = registerWindowView.findViewById(R.id.field_login);
+        final MaterialEditText number = registerWindowView.findViewById(R.id.field_phonenumber);
+        final MaterialEditText password = registerWindowView.findViewById(R.id.field_password);
 
         dialog.setNegativeButton("Відхилити", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog1, int which)
-            {
-               dialog1.dismiss();
+            public void onClick(DialogInterface dialog1, int which) {
+                dialog1.dismiss();
             }
         });
-        dialog.setPositiveButton("Прийняти", new DialogInterface.OnClickListener() {
+
+        dialog.setPositiveButton("Прийняти", null); // null для того, щоб діалог не закривався автоматично
+
+        final AlertDialog alertDialog = dialog.create(); // Створення AlertDialog
+
+        alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
-            public void onClick(DialogInterface dialog1, int which) {
-                if (TextUtils.isEmpty(email.getText().toString())) {
-                    Snackbar.make(root, "Введіть пошту", Snackbar.LENGTH_SHORT).show();
-                    return;
-                }
-                if (TextUtils.isEmpty(name.getText().toString())) {
-                    Snackbar.make(root, "Введіть ім'я", Snackbar.LENGTH_SHORT).show();
-                    return;
-                }
-                if (TextUtils.isEmpty(number.getText().toString())) {
-                    Snackbar.make(root, "Введіть номер телефону", Snackbar.LENGTH_SHORT).show();
-                    return;
-                }
-                if (password.getText().toString().length() < 5) {
-                    Snackbar.make(root, "Пароль повинен містити щонайменше 5 символів", Snackbar.LENGTH_LONG).show();
-                    return;
-                }
-                String hashedPass = PasswordHasher.hashPassword(password.getText().toString()); // хешування паролю
-                auth.createUserWithEmailAndPassword(email.getText().toString(), password.getText().toString())
-                        .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                            @Override
-                            public void onSuccess(AuthResult authResult) {
-                                User user = new User();
-                                user.setEmail(email.getText().toString());
-                                user.setNumber(number.getText().toString());
-                                user.setName(name.getText().toString());
-                                user.setPassword(hashedPass);
+            public void onShow(DialogInterface dialogInterface) {
+                // Обробник кліку кнопки "Прийняти"
+                Button positiveButton = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                positiveButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        boolean emailInvalid = email.getText().toString().isEmpty();
+                        boolean nameInvalid = name.getText().toString().isEmpty();
+                        boolean numberInvalid = number.getText().toString().isEmpty();
+                        boolean passwordInvalid = password.getText().toString().isEmpty();
 
-                                users.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                        .setValue(user)
-                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void unused) {
-                                                Snackbar.make(root, "Користувач успішно створений", Snackbar.LENGTH_LONG).show();
-                                            }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                Toast.makeText(getApplicationContext(), "Помилка : " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                            }
-                                        });
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(getApplicationContext(), "Помилка авторизації: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                            }
-                        });
+                        if (emailInvalid) {
+                            email.setHintTextColor(Color.parseColor("#e03a40"));
+                            email.setUnderlineColor(Color.parseColor("#e03a40"));
+                        } else {
+                            email.setHintTextColor(Color.parseColor("#c89cf7"));
+                            email.setUnderlineColor(Color.parseColor("#c89cf7"));
+                        }
 
-        }
-    });
+                        if (nameInvalid) {
+                            name.setHintTextColor(Color.parseColor("#e03a40"));
+                            name.setUnderlineColor(Color.parseColor("#e03a40"));
+                        } else {
+                            name.setHintTextColor(Color.parseColor("#c89cf7"));
+                            name.setUnderlineColor(Color.parseColor("#c89cf7"));
+                        }
 
-        dialog.show();
- }
+                        if (numberInvalid) {
+                            number.setHintTextColor(Color.parseColor("#e03a40"));
+                            number.setUnderlineColor(Color.parseColor("#e03a40"));
+                        } else {
+                            number.setHintTextColor(Color.parseColor("#c89cf7"));
+                            number.setUnderlineColor(Color.parseColor("#c89cf7"));
+                        }
+
+                        if (passwordInvalid) {
+                            password.setHintTextColor(Color.parseColor("#e03a40"));
+                            password.setUnderlineColor(Color.parseColor("#e03a40"));
+                        } else {
+                            password.setHintTextColor(Color.parseColor("#c89cf7"));
+                            password.setUnderlineColor(Color.parseColor("#c89cf7"));
+                        }
+
+                        if (emailInvalid || nameInvalid || numberInvalid || passwordInvalid) {
+                            Toast.makeText(getApplicationContext(), "Будь ласка, заповніть всі поля коректно", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+
+                            String hashedPass = PasswordHasher.hashPassword(password.getText().toString()); // хешування паролю
+
+                            auth.createUserWithEmailAndPassword(email.getText().toString(), password.getText().toString())
+                                    .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                                        @Override
+                                        public void onSuccess(AuthResult authResult) {
+                                            //Створення користувача
+                                            User user = new User();
+                                            user.setEmail(email.getText().toString());
+                                            user.setNumber(number.getText().toString());
+                                            user.setName(name.getText().toString());
+                                            user.setPassword(hashedPass);
+
+                                            users.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                                    .setValue(user)
+                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                        @Override
+                                                        public void onSuccess(Void unused) {
+                                                            Toast.makeText(getApplicationContext(),"Користувач успішно створений!", Toast.LENGTH_LONG).show();
+                                                            alertDialog.dismiss(); // Закриття діалогу після успішного введення даних
+                                                        }
+                                                    })
+                                                    .addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+                                                            Toast.makeText(getApplicationContext(), "Помилка : " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                                        }
+                                                    });
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(getApplicationContext(), "Помилка авторизації: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                        }
+                                    });
+
+                    }
+                });
+            }
+        });
+
+        alertDialog.show(); // Показ діалогу
+    }
 }
 
 
