@@ -43,6 +43,7 @@ dependencies {
     implementation("com.android.support:design")
     implementation("com.rengwuxian.materialedittext:library:2.1.4")
     implementation("uk.co.chrisjenx:calligraphy:2.3.0")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
 
     //noinspection GradleCompatible

@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -36,6 +37,7 @@ public class StorageActivity extends AppCompatActivity {
     FloatingActionButton add_button, filter_button, search_button;
     EditText barcode_data, name_data;
     FirebaseAuth auth;
+    SwipeRefreshLayout swipeRefreshLayout;
 
     DatabaseReference usersRef;
 
@@ -47,9 +49,11 @@ public class StorageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_storage);
+
         add_button = findViewById(R.id.add_button);
         filter_button = findViewById(R.id.filter_button);
         search_button = findViewById(R.id.search_button);
+        swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
 
         auth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
@@ -61,6 +65,17 @@ public class StorageActivity extends AppCompatActivity {
         }
 
         String currentUserUid = currentUser.getUid();
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // Виклик методу для оновлення даних
+                refreshData(currentUserUid);
+            }
+        });
+
+
+
+
 
         usersRef = FirebaseDatabase.getInstance().getReference().child("Users");
 
@@ -70,6 +85,10 @@ public class StorageActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         productAdapter = new ProductAdapter(productList);
         recyclerView.setAdapter(productAdapter);
+
+
+
+
 
         add_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -151,27 +170,23 @@ public class StorageActivity extends AppCompatActivity {
         }
 
         // Додавання продукту до бази даних
-        usersRef.child(currentUserUid).child("box").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                long count = dataSnapshot.getChildrenCount() + 1;
-                String productId = String.valueOf(count);
-
-                usersRef.child(currentUserUid).child("box").child(productId).child("barcode").setValue(barcode);
-                usersRef.child(currentUserUid).child("box").child(productId).child("name").setValue(productName);
-                usersRef.child(currentUserUid).child("box").child(productId).child("quantity").setValue(quantity);
-                Toast.makeText(getApplicationContext(), "Успішно додано!", Toast.LENGTH_LONG).show();
-
-                productList.add(new Box(barcode, productName, quantity));
-                productAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(getApplicationContext(), "Помилка при додаванні товару", Toast.LENGTH_SHORT).show();
-            }
-        });
+        Box newBox = new Box(barcode, productName, quantity);
+        usersRef.child(currentUserUid).child("box").push().setValue(newBox)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            // Оновлення списку після успішного додавання об'єкта до бази даних
+                            productList.add(newBox);
+                            productAdapter.notifyDataSetChanged();
+                            Toast.makeText(getApplicationContext(), "Успішно додано!", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Помилка при додаванні товару", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
+
 
 
     private void displayData(String currentUserUid) {
@@ -332,6 +347,7 @@ public class StorageActivity extends AppCompatActivity {
         AlertDialog alertDialog = dialogBuilder.create();
         alertDialog.show();
     }
+
     private void updateProduct(Box box, String newName, String newQuantity) {
         // Перевірка чи не є поля пустими або чи не є кількість рядком
         if (newName.isEmpty() || newQuantity.isEmpty() || !isNumeric(newQuantity)) {
@@ -411,30 +427,32 @@ public class StorageActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "Помилка при видаленні продукту", Toast.LENGTH_SHORT).show();
             }
         });
+
     }
+    private void refreshData(String currentUserUid) {
+        productList.clear(); // Очистити список продуктів
 
-
-
-    private void performDelete(Box box) {
-        String currentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference boxRef = usersRef.child(currentUserUid).child("box").child(box.getBarcode());
-        boxRef.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+        // Заново витягнути дані з Firebase
+        usersRef.child(currentUserUid).child("box").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    // Видалення успішне, тому оновлюємо список і показуємо повідомлення
-                    productList.remove(box);
-                    productAdapter.notifyDataSetChanged();
-                    Toast.makeText(getApplicationContext(), "Продукт видалено", Toast.LENGTH_SHORT).show();
-                } else {
-                    // Виникла помилка при видаленні, показуємо відповідне повідомлення
-                    Toast.makeText(getApplicationContext(), "Помилка при видаленні продукту", Toast.LENGTH_SHORT).show();
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String barcode = snapshot.child("barcode").getValue(String.class);
+                    String productName = snapshot.child("name").getValue(String.class);
+                    String quantity = snapshot.child("quantity").getValue(String.class);
+
+                    productList.add(new Box(barcode, productName, quantity));
                 }
+                productAdapter.notifyDataSetChanged();
+                swipeRefreshLayout.setRefreshing(false); // Припинення анімації оновлення
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(getApplicationContext(), "Помилка при оновленні даних", Toast.LENGTH_SHORT).show();
+                swipeRefreshLayout.setRefreshing(false); // Припинення анімації оновлення
             }
         });
     }
-
-
-
 
 }
