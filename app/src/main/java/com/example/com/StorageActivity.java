@@ -1,12 +1,13 @@
 package com.example.com;
 
-
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 import android.widget.TextView;
@@ -30,14 +31,20 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
 public class StorageActivity extends AppCompatActivity {
+    private String searchText = "";
+    private boolean isSearching = false;
+    private ArrayList<Box> searchResults = new ArrayList<>();
     FloatingActionButton add_button, filter_button, search_button;
-    EditText barcode_data, name_data;
+    EditText search_field;
     FirebaseAuth auth;
     SwipeRefreshLayout swipeRefreshLayout;
+    TextView filter_text;
 
     DatabaseReference usersRef;
 
@@ -50,9 +57,12 @@ public class StorageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_storage);
 
+
         add_button = findViewById(R.id.add_button);
         filter_button = findViewById(R.id.filter_button);
+        filter_text = findViewById(R.id.filter_text);
         search_button = findViewById(R.id.search_button);
+        search_field = findViewById(R.id.search_field);
         swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
 
         auth = FirebaseAuth.getInstance();
@@ -68,14 +78,9 @@ public class StorageActivity extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                // Виклик методу для оновлення даних
                 refreshData(currentUserUid);
             }
         });
-
-
-
-
 
         usersRef = FirebaseDatabase.getInstance().getReference().child("Users");
 
@@ -85,10 +90,6 @@ public class StorageActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         productAdapter = new ProductAdapter(productList);
         recyclerView.setAdapter(productAdapter);
-
-
-
-
 
         add_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,18 +101,99 @@ public class StorageActivity extends AppCompatActivity {
         filter_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Implement filter logic
+                // Створення списку рядків для відображення в діалоговому вікні
+                final String[] filterOptions = {"Від А до Я", "Від Я до А", "За зростанням кількості", "За спаданням кількості"};
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(StorageActivity.this);
+                builder.setTitle("Виберіть фільтр");
+
+                builder.setItems(filterOptions, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Отримання вибраного фільтру
+                        String selectedFilter = filterOptions[which];
+
+                        // Обробка вибраного фільтру
+                        switch (which) {
+                            case 0:
+                                // Сортування від А до Я
+                                Collections.sort(productList, new Comparator<Box>() {
+                                    @Override
+                                    public int compare(Box o1, Box o2) {
+                                        return o1.getName().compareTo(o2.getName());
+                                    }
+                                });
+                                productAdapter.notifyDataSetChanged();
+                                break;
+                            case 1:
+                                // Сортування від Я до А
+                                Collections.sort(productList, new Comparator<Box>() {
+                                    @Override
+                                    public int compare(Box o1, Box o2) {
+                                        return o2.getName().compareTo(o1.getName());
+                                    }
+                                });
+                                productAdapter.notifyDataSetChanged();
+                                break;
+                            case 2:
+                                // Сортування за зростанням кількості
+                                Collections.sort(productList, new Comparator<Box>() {
+                                    @Override
+                                    public int compare(Box o1, Box o2) {
+                                        return Integer.valueOf(o1.getQuantity()).compareTo(Integer.valueOf(o2.getQuantity()));
+                                    }
+                                });
+                                productAdapter.notifyDataSetChanged();
+                                break;
+                            case 3:
+                                // Сортування за спаданням кількості
+                                Collections.sort(productList, new Comparator<Box>() {
+                                    @Override
+                                    public int compare(Box o1, Box o2) {
+                                        return Integer.valueOf(o2.getQuantity()).compareTo(Integer.valueOf(o1.getQuantity()));
+                                    }
+                                });
+                                productAdapter.notifyDataSetChanged();
+                                break;
+                        }
+
+                        // Змінюємо текст в filter_text залежно від вибраного фільтру
+                        TextView filterTextView = findViewById(R.id.filter_text);
+                        filterTextView.setText(selectedFilter);
+                    }
+                });
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
             }
+
         });
 
         search_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Implement search logic
+                searchText = search_field.getText().toString().trim();
+                if (searchText.isEmpty()) {
+                    Toast.makeText(getApplicationContext(), "Спочатку введіть текст у поле пошуку", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Отримання фокусу від поле вводу
+                    search_field.clearFocus();
+                    isSearching = true;
+                    // Виклик методу для оновлення даних з новим текстом пошуку
+                    refreshData(currentUserUid);
+                }
             }
         });
 
-        // Displaying data from Firebase when the Activity is created
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                search_field.setText(""); // Очистити поле пошуку при оновленні сторінки
+                refreshData(currentUserUid);
+            }
+        });
+
         displayData(currentUserUid);
         productAdapter.setOnItemClickListener(new ProductAdapter.OnItemClickListener() {
             @Override
@@ -147,7 +229,6 @@ public class StorageActivity extends AppCompatActivity {
         });
         dialogBuilder.setNegativeButton("Скасувати", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                // Cancel dialog
             }
         });
         AlertDialog alertDialog = dialogBuilder.create();
@@ -155,13 +236,11 @@ public class StorageActivity extends AppCompatActivity {
     }
 
     private void addProduct(String currentUserUid, String barcode, String productName, String quantity) {
-        // Перевірка, чи штрих-код містить лише числа
         if (!isNumeric(barcode)) {
             Toast.makeText(getApplicationContext(), "Штрих-код повинен містити тільки числа", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Перевірка на унікальність штрих-коду
         for (Box existingBox : productList) {
             if (existingBox.getBarcode().equals(barcode)) {
                 Toast.makeText(getApplicationContext(), "Штрих-код вже існує, введіть унікальний штрих-код", Toast.LENGTH_SHORT).show();
@@ -169,14 +248,12 @@ public class StorageActivity extends AppCompatActivity {
             }
         }
 
-        // Додавання продукту до бази даних
         Box newBox = new Box(barcode, productName, quantity);
         usersRef.child(currentUserUid).child("box").push().setValue(newBox)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            // Оновлення списку після успішного додавання об'єкта до бази даних
                             productList.add(newBox);
                             productAdapter.notifyDataSetChanged();
                             Toast.makeText(getApplicationContext(), "Успішно додано!", Toast.LENGTH_LONG).show();
@@ -186,8 +263,6 @@ public class StorageActivity extends AppCompatActivity {
                     }
                 });
     }
-
-
 
     private void displayData(String currentUserUid) {
         usersRef.child(currentUserUid).child("box").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -261,6 +336,10 @@ public class StorageActivity extends AppCompatActivity {
             this.listener = listener;
         }
 
+        public void setProductList(ArrayList<Box> productList) {
+            this.productList = productList;
+        }
+
         public static class ProductViewHolder extends RecyclerView.ViewHolder {
             public TextView barcodeTextView;
             public TextView nameTextView;
@@ -277,6 +356,12 @@ public class StorageActivity extends AppCompatActivity {
         public ProductAdapter(ArrayList<Box> productList) {
             this.productList = productList;
         }
+        public void clear() {
+            if (productList != null) {
+                productList.clear();
+                notifyDataSetChanged();
+            }
+        }
 
         @NonNull
         @Override
@@ -288,6 +373,10 @@ public class StorageActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
+            if (productList == null || position < 0 || position >= productList.size()) {
+                return; // Перевірка на null і правильність позиції
+            }
+
             Box currentItem = productList.get(position);
 
             holder.barcodeTextView.setText(currentItem.getBarcode());
@@ -313,7 +402,6 @@ public class StorageActivity extends AppCompatActivity {
         }
     }
 
-
     private void showEditBoxDialog(final Box box) {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
@@ -323,24 +411,20 @@ public class StorageActivity extends AppCompatActivity {
         final EditText nameInput = dialogView.findViewById(R.id.edit_name_input);
         final EditText quantityInput = dialogView.findViewById(R.id.edit_quantity_input);
 
-        // Встановлення поточних значень імені та кількості у текстових полях
         nameInput.setText(box.getName());
         quantityInput.setText(box.getQuantity());
 
         dialogBuilder.setTitle("Редагувати продукт");
         dialogBuilder.setPositiveButton("Зберегти", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                // Отримання нових значень з полів вводу
                 String newName = nameInput.getText().toString().trim();
                 String newQuantity = quantityInput.getText().toString().trim();
 
-                // Оновлення інформації про об'єкт у списку та базі даних
                 updateProduct(box, newName, newQuantity);
             }
         });
         dialogBuilder.setNegativeButton("Видалити", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                // Видалення об'єкта зі списку та бази даних
                 deleteProduct(box);
             }
         });
@@ -349,41 +433,68 @@ public class StorageActivity extends AppCompatActivity {
     }
 
     private void updateProduct(Box box, String newName, String newQuantity) {
-        // Перевірка чи не є поля пустими або чи не є кількість рядком
         if (newName.isEmpty() || newQuantity.isEmpty() || !isNumeric(newQuantity)) {
             Toast.makeText(getApplicationContext(), "Будь ласка, введіть коректні дані", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Оновлення інформації про об'єкт у списку
-        box.setName(newName);
-        box.setQuantity(newQuantity);
-        productAdapter.notifyDataSetChanged();
-
-        // Оновлення інформації про об'єкт у базі даних
         String currentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        DatabaseReference boxRef = usersRef.child(currentUserUid).child("box").child(box.getBarcode());
-        Map<String, Object> updateValues = new HashMap<>();
-        updateValues.put("name", newName);
-        updateValues.put("quantity", newQuantity);
-        boxRef.updateChildren(updateValues).addOnCompleteListener(new OnCompleteListener<Void>() {
+        DatabaseReference boxRef = usersRef.child(currentUserUid).child("box");
+        Query query = boxRef.orderByChild("barcode").equalTo(box.getBarcode());
+
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Toast.makeText(getApplicationContext(), "Продукт оновлено", Toast.LENGTH_SHORT).show();
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        // Видалення старого запису
+                        snapshot.getRef().removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    // Додавання нового запису з тим самим штрих-кодом, але з оновленими даними
+                                    Box newBox = new Box(box.getBarcode(), newName, newQuantity);
+                                    usersRef.child(currentUserUid).child("box").child(box.getBarcode()).setValue(newBox)
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if (task.isSuccessful()) {
+                                                        // Оновлення даних в ArrayList
+                                                        box.setName(newName);
+                                                        box.setQuantity(newQuantity);
+                                                        productAdapter.notifyDataSetChanged();
+                                                        Toast.makeText(getApplicationContext(), "Продукт оновлено", Toast.LENGTH_SHORT).show();
+                                                    } else {
+                                                        Toast.makeText(getApplicationContext(), "Помилка при оновленні продукту", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                            });
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "Помилка при видаленні старого запису", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                    }
                 } else {
-                    Toast.makeText(getApplicationContext(), "Помилка при оновленні продукту", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Продукт не знайдено", Toast.LENGTH_SHORT).show();
                 }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(getApplicationContext(), "Помилка при оновленні продукту", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // Допоміжний метод для перевірки, чи є рядок числом
+
+
+
     private boolean isNumeric(String str) {
         try {
             double d = Double.parseDouble(str);
-        } catch(NumberFormatException | NullPointerException e) {
+        } catch (NumberFormatException | NullPointerException e) {
             return false;
         }
         return true;
@@ -404,35 +515,28 @@ public class StorageActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
-                                    // Видалення успішне, тому оновлюємо список і показуємо повідомлення
                                     productList.remove(box);
                                     productAdapter.notifyDataSetChanged();
                                     Toast.makeText(getApplicationContext(), "Продукт видалено", Toast.LENGTH_SHORT).show();
                                 } else {
-                                    // Виникла помилка при видаленні, показуємо відповідне повідомлення
                                     Toast.makeText(getApplicationContext(), "Помилка при видаленні продукту", Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
                     }
                 } else {
-                    // Продукт не знайдено за вказаним штрих-кодом
                     Toast.makeText(getApplicationContext(), "Продукт не знайдено", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Виникла помилка при читанні з бази даних
                 Toast.makeText(getApplicationContext(), "Помилка при видаленні продукту", Toast.LENGTH_SHORT).show();
             }
         });
-
     }
-    private void refreshData(String currentUserUid) {
-        productList.clear(); // Очистити список продуктів
-
-        // Заново витягнути дані з Firebase
+    private void updateSearchResults(String currentUserUid) {
+        productList.clear(); // Очищення списку перед додаванням нових даних
         usersRef.child(currentUserUid).child("box").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -441,18 +545,64 @@ public class StorageActivity extends AppCompatActivity {
                     String productName = snapshot.child("name").getValue(String.class);
                     String quantity = snapshot.child("quantity").getValue(String.class);
 
-                    productList.add(new Box(barcode, productName, quantity));
+                    // Перевірка, чи відповідає поточний продукт пошуковому тексту
+                    if (productName.toLowerCase().contains(searchText.toLowerCase())) {
+                        productList.add(new Box(barcode, productName, quantity));
+                    }
                 }
                 productAdapter.notifyDataSetChanged();
-                swipeRefreshLayout.setRefreshing(false); // Припинення анімації оновлення
+                swipeRefreshLayout.setRefreshing(false);
+                isSearching = false;
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(getApplicationContext(), "Помилка при оновленні даних", Toast.LENGTH_SHORT).show();
-                swipeRefreshLayout.setRefreshing(false); // Припинення анімації оновлення
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
     }
 
+    private void refreshData(String currentUserUid) {
+        filter_text.setText("Вибраний фільтр");
+        productList.clear();
+        productAdapter.clear();
+        searchResults.clear();
+
+
+        if(isSearching)
+        {
+            updateSearchResults(currentUserUid);
+        }
+        else
+        {
+            // Оновлення даних при свайпі вниз
+            usersRef.child(currentUserUid).child("box").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    productList.clear(); // Очищення списку перед додаванням нових даних
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        String barcode = snapshot.child("barcode").getValue(String.class);
+                        String productName = snapshot.child("name").getValue(String.class);
+                        String quantity = snapshot.child("quantity").getValue(String.class);
+                        productList.add(new Box(barcode, productName, quantity));
+                    }
+                    productAdapter.notifyDataSetChanged();
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(getApplicationContext(), "Помилка при оновленні даних", Toast.LENGTH_SHORT).show();
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+            });
+        }
+
+    // Згортання клавіатури
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(search_field.getWindowToken(), 0);
+
+
+    }
 }
