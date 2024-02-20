@@ -1,8 +1,11 @@
 package com.example.com;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -18,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.com.Models.User;
 import com.example.com.PasswordHasher;
 import com.example.com.R;
-import com.example.com.storageActivity;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.AuthResult;
@@ -34,6 +36,39 @@ public class MainActivity extends AppCompatActivity {
     FirebaseAuth auth;
     FirebaseDatabase db;
     DatabaseReference users;
+
+    public void animateError(View view) {
+        MaterialEditText editText = (MaterialEditText) view;
+        editText.setUnderlineColor(Color.parseColor("#e03a40"));
+        editText.setHintTextColor(Color.parseColor("#e03a40"));
+
+        ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(view, "scaleX", 0.9f);
+        ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(view, "scaleY", 0.9f);
+        scaleDownX.setDuration(300);
+        scaleDownY.setDuration(300);
+
+        ObjectAnimator scaleUpX = ObjectAnimator.ofFloat(view, "scaleX", 1.0f);
+        ObjectAnimator scaleUpY = ObjectAnimator.ofFloat(view, "scaleY", 1.0f);
+        scaleUpX.setDuration(300);
+        scaleUpY.setDuration(300);
+
+        AnimatorSet scaleDown = new AnimatorSet();
+        scaleDown.play(scaleDownX).with(scaleDownY);
+
+        AnimatorSet scaleUp = new AnimatorSet();
+        scaleUp.play(scaleUpX).with(scaleUpY);
+
+        AnimatorSet pulse = new AnimatorSet();
+        pulse.play(scaleUp).after(scaleDown);
+        pulse.start();
+    }
+    public void animateGood(View view)
+    {
+        MaterialEditText editText = (MaterialEditText) view;
+        editText.setUnderlineColor(Color.parseColor("#B3B3B3"));
+        editText.setHintTextColor(Color.parseColor("#B3B3B3"));
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,13 +91,20 @@ public class MainActivity extends AppCompatActivity {
         MaterialEditText pass = findViewById(R.id.text_password);
 
         if (TextUtils.isEmpty(login.getText()) || TextUtils.isEmpty(pass.getText())) {
+            animateError(login);
+            animateError(pass);
             showError("Логін або пароль введений некоректно");
             return;
+        }
+        else
+        {
+            animateGood(login);
+            animateGood(pass);
         }
 
         auth.signInWithEmailAndPassword(login.getText().toString(), pass.getText().toString())
                 .addOnSuccessListener(authResult -> {
-                    startActivity(new Intent(MainActivity.this, storageActivity.class));
+                    startActivity(new Intent(MainActivity.this, StorageActivity.class));
                     finish();
                 })
                 .addOnFailureListener(e -> showError("Помилка авторизації: " + e.getMessage()));
@@ -105,23 +147,29 @@ public class MainActivity extends AppCompatActivity {
                                         MaterialEditText number, MaterialEditText password) {
         boolean isValid = true;
         if (TextUtils.isEmpty(email.getText()) || !android.util.Patterns.EMAIL_ADDRESS.matcher(email.getText()).matches()) {
-            email.setError("Некоректна електронна пошта");
+
+           animateError(email);
             isValid = false;
-        }
+        } else { animateGood(email);}
+
         if (TextUtils.isEmpty(name.getText())) {
-            name.setError("Поле не може бути порожнім");
+            animateError(name);
             isValid = false;
-        }
+        }else {animateGood(name);}
+
         if (TextUtils.isEmpty(number.getText())) {
-            number.setError("Поле не може бути порожнім");
+            animateError(number);
             isValid = false;
-        }
+        } else {animateGood(number);}
+
         if (TextUtils.isEmpty(password.getText())) {
-            password.setError("Поле не може бути порожнім");
+            animateError(password);
             isValid = false;
-        }
+        }else {animateGood(password);}
+
         return isValid;
     }
+
 
     private void createUser(String email, String password, String name, String number, AlertDialog alertDialog) {
         auth.createUserWithEmailAndPassword(email, password)

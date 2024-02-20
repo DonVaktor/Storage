@@ -1,19 +1,101 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".storageActivity">
+    android:orientation="vertical"
+    tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/textView"
+    <!-- RecyclerView в верхній половині -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="637dp"
+        android:layout_marginBottom="3dp"
+        android:layout_weight="1" />
+
+    <!-- Блок з кнопками у нижній половині -->
+    <LinearLayout
+
+        android:id="@+id/search_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Працює!!!"
-        android:gravity="center"
-        android:textSize="50sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:orientation="horizontal"
+        android:padding="3sp"
+        android:background="@color/light_purple">
+
+        <!-- Ліва половина -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- Фільтр кнопка і текст -->
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/filter_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/light_purple"
+                android:contentDescription="@string/log_in"
+                app:elevation="0dp"
+                app:fabSize="mini"
+                app:srcCompat="@drawable/filter" />
+
+            <TextView
+                android:id="@+id/filter_text"
+                android:layout_width="99dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Вибрана фільтрація" />
+        </LinearLayout>
+
+        <!-- Кнопка "Додати" -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/add_button"
+            android:layout_width="118dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="@color/light_purple"
+            android:contentDescription="@string/email"
+            app:backgroundTint="@color/dark_purple"
+            app:borderWidth="3dp"
+            app:elevation="0dp"
+            app:fabSize="mini"
+            app:srcCompat="@drawable/plus" />
+
+        <!-- Права половина -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- Поле пошуку -->
+            <EditText
+                android:id="@+id/search_field"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Пошук"
+                android:minHeight="48dp" />
+
+            <!-- Кнопка пошуку -->
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/search_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="2dp"
+                android:backgroundTint="@color/light_purple"
+                android:contentDescription="@string/password_text"
+                app:elevation="0dp"
+                app:fabSize="mini"
+                app:srcCompat="@drawable/img" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>
