@@ -6,36 +6,48 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@color/light_purple"
+        android:background="@color/white"
         android:padding="8dp">
 
         <!-- Штрих-код -->
-        <TextView
-            android:id="@+id/barcode_label"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="245dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Штрих-код"
-            android:textStyle="bold"
-            android:textSize="16sp" />
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/barcode_label"
+                android:layout_width="128dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Штрих-код"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/name_label"
+                android:layout_width="280dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Назва"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
 
         <!-- Назва -->
-        <TextView
-            android:id="@+id/name_label"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Назва"
-            android:textStyle="bold"
-            android:textSize="16sp" />
 
         <!-- Кількість -->
         <TextView
             android:id="@+id/quantity_label"
+            android:gravity="center"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
@@ -66,7 +78,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="3sp"
-        android:background="@color/light_purple">
+        android:background="@color/white">
 
         <!-- Ліва половина -->
         <LinearLayout
@@ -76,24 +88,25 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <!-- Фільтр кнопка і текст -->
+            <!-- кнопка налаштувань і текст -->
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/filter_button"
+                android:id="@+id/settings_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:backgroundTint="@color/light_purple"
+                android:backgroundTint="@color/white"
                 android:contentDescription="@string/log_in"
                 app:elevation="0dp"
-                app:fabSize="mini"
-                app:srcCompat="@drawable/filter" />
+                app:fabSize="normal"
+                app:srcCompat="@drawable/gear" />
 
             <TextView
                 android:id="@+id/filter_text"
                 android:layout_width="99dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="Вибрана фільтрація" />
+                android:textColor="@color/black"
+                android:text="Вибраний фільтр" />
         </LinearLayout>
 
         <!-- Кнопка "Додати" -->
@@ -102,7 +115,7 @@
             android:layout_width="118dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:backgroundTint="@color/light_purple"
+            android:backgroundTint="@color/white"
             android:contentDescription="@string/email"
             app:backgroundTint="@color/dark_purple"
             app:borderWidth="3dp"
@@ -121,10 +134,13 @@
             <!-- Поле пошуку -->
             <EditText
                 android:id="@+id/search_field"
+                android:imeOptions="actionDone"
+                android:inputType="text"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="Пошук"
+                android:textColor="@color/black"
                 android:minHeight="48dp" />
 
             <!-- Кнопка пошуку -->
@@ -133,7 +149,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="2dp"
-                android:backgroundTint="@color/light_purple"
+                android:backgroundTint="@color/white"
                 android:contentDescription="@string/password_text"
                 app:elevation="0dp"
                 app:fabSize="mini"

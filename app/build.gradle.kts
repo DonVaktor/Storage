@@ -44,6 +44,8 @@ dependencies {
     implementation("com.rengwuxian.materialedittext:library:2.1.4")
     implementation("uk.co.chrisjenx:calligraphy:2.3.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("com.google.zxing:core:3.4.1")
+    implementation("com.journeyapps:zxing-android-embedded:3.6.0")
 
 
     //noinspection GradleCompatible

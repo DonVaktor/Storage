@@ -5,38 +5,48 @@
     android:layout_height="wrap_content"
     android:stretchColumns="*"
     android:shrinkColumns="*"
-    android:background="@color/row_color">
+    android:background="@color/mint">
 
     <TableRow
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/barcode_text_view"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Barcode"
-            android:padding="8dp"
-            android:background="#CCCCCC"/>
+        <LinearLayout
+            android:layout_width="218dp"
+            android:layout_height="match_parent"
 
-        <TextView
-            android:id="@+id/name_text_view"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Name"
-            android:padding="8dp"
-            android:background="#CCCCCC"/>
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/barcode_text_view"
+                android:layout_width="117dp"
+                android:layout_height="wrap_content"
+                android:background="@color/middle_purple"
+                android:padding="8dp"
+                android:text="Barcode"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/name_text_view"
+                android:layout_width="238dp"
+                android:layout_height="wrap_content"
+                android:background="@color/ultra_light_purple"
+                android:maxEms="20"
+                android:padding="8dp"
+                android:text="Name"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/quantity_text_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Quantity"
+            android:background="@color/middle_purple"
+            android:maxEms="4"
             android:padding="8dp"
-            android:background="#CCCCCC"/>
+            android:text="Quantity"
+            android:textColor="@color/black" /> <!-- Встановлено максимальну кількість символів -->
 
     </TableRow>
 

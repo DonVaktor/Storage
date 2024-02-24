@@ -2,31 +2,52 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="20dp">
+    android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/barcode_input"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/barcode_input_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Штрих-код"
-        android:inputType="text"
-        android:minHeight="48dp" />
+        android:layout_height="wrap_content">
 
-    <EditText
-        android:id="@+id/name_input"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Назва продукту"
-        android:inputType="text"
-        android:minHeight="48dp" />
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/barcode_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Штрих-код" />
 
-    <EditText
-        android:id="@+id/quantity_input"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/scan_button"
+            android:backgroundTint="@color/light_purple"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Сканувати штрих-код" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/name_input_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Кількість"
-        android:inputType="number"
-        android:minHeight="48dp" />
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/name_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Назва товару" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/quantity_input_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/quantity_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Кількість" />
+
+    </com.google.android.material.textfield.TextInputLayout>
 
 </LinearLayout>

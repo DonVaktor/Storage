@@ -5,7 +5,6 @@ import android.animation.ObjectAnimator;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -14,20 +13,16 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.com.Models.User;
-import com.example.com.PasswordHasher;
-import com.example.com.R;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.rengwuxian.materialedittext.MaterialEditText;
+
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -132,8 +127,8 @@ public class MainActivity extends AppCompatActivity {
             Button positiveButton = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
             positiveButton.setOnClickListener(view -> {
                 if (isValidRegistration(email, name, number, password)) {
-                    createUser(email.getText().toString(), password.getText().toString(),
-                            name.getText().toString(), number.getText().toString(), alertDialog);
+                    createUser(Objects.requireNonNull(email.getText()).toString(), Objects.requireNonNull(password.getText()).toString(),
+                            Objects.requireNonNull(name.getText()).toString(), Objects.requireNonNull(number.getText()).toString(), alertDialog);
                 } else {
                     showError("Будь ласка, заповніть всі поля коректно");
                 }
@@ -174,15 +169,15 @@ public class MainActivity extends AppCompatActivity {
     private void createUser(String email, String password, String name, String number, AlertDialog alertDialog) {
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    String hashedPass = PasswordHasher.hashPassword(password);
+                    PasswordHasher.hashPassword(password);
 
                     User user = new User();
-                    user.setEmail(email);
+                    user.setEmail();
                     user.setNumber(number);
                     user.setName(name);
-                    user.setPassword(hashedPass);
+                    user.setPassword();
 
-                    users.child(auth.getCurrentUser().getUid())
+                    users.child(Objects.requireNonNull(auth.getCurrentUser()).getUid())
                             .setValue(user)
                             .addOnSuccessListener(unused -> {
                                 Toast.makeText(getApplicationContext(),"Користувач успішно створений!", Toast.LENGTH_LONG).show();

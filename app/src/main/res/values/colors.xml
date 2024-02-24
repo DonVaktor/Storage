@@ -8,4 +8,8 @@
     <color name="middle_gray"> #2b2b2b </color>
     <color name="light_red"> #e03a40</color>
     <color name="dark_purple"> #904ba6</color>
+
+    <color name="middle_purple">   #b866d1</color>
+    <color name="ultra_light_purple">    #d581f0</color>
+
 </resources>
