@@ -4,13 +4,21 @@ public class Box {
     private final String barcode;
     private String name;
     private String quantity;
+    private String category;
+
+    public String getCategory() { return category;}
+
+    public void setCategory(String category) { this.category = category;}
 
 
 
-    public Box(String barcode, String name, String quantity) {
+
+
+    public Box(String barcode, String name, String quantity, String category) {
         this.barcode = barcode;
         this.name = name;
         this.quantity = quantity;
+        this.category = category;
     }
 
     public void setName(String name) {

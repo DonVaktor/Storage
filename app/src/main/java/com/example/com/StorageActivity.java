@@ -109,7 +109,7 @@ public class StorageActivity extends AppCompatActivity {
         });
 
 
-        final String[] filterOptions = {"Від А до Я", "Від Я до А", "За зростанням кількості", "За спаданням кількості"};
+        final String[] filterOptions = {"Категорія: Від А до Я", "Категорія: Від Я до А", "Назва: Від А до Я", "Назва: Від Я до А", "За зростанням кількості", "За спаданням кількості"};
 
         filter_text.setOnClickListener(v -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(StorageActivity.this);
@@ -123,20 +123,30 @@ public class StorageActivity extends AppCompatActivity {
                 switch (which) {
                     case 0:
                         // Сортування від А до Я
-                        productList.sort(Comparator.comparing(Box::getName));
+                        productList.sort(Comparator.comparing(Box::getCategory));
                         productAdapter.notifyDataSetChanged();
                         break;
                     case 1:
                         // Сортування від Я до А
-                        productList.sort((o1, o2) -> o2.getName().compareTo(o1.getName()));
+                        productList.sort((o1, o2) -> o2.getCategory().compareTo(o1.getCategory()));
                         productAdapter.notifyDataSetChanged();
                         break;
                     case 2:
+                        // Сортування від А до Я
+                        productList.sort(Comparator.comparing(Box::getName));
+                        productAdapter.notifyDataSetChanged();
+                        break;
+                    case 3:
+                        // Сортування від Я до А
+                        productList.sort((o1, o2) -> o2.getName().compareTo(o1.getName()));
+                        productAdapter.notifyDataSetChanged();
+                        break;
+                    case 4:
                         // Сортування за зростанням кількості
                         productList.sort(Comparator.comparing(o -> Integer.valueOf(o.getQuantity())));
                         productAdapter.notifyDataSetChanged();
                         break;
-                    case 3:
+                    case 5:
                         // Сортування за спаданням кількості
                         productList.sort((o1, o2) -> Integer.valueOf(o2.getQuantity()).compareTo(Integer.valueOf(o1.getQuantity())));
                         productAdapter.notifyDataSetChanged();
@@ -200,30 +210,36 @@ public class StorageActivity extends AppCompatActivity {
         barcodeInput = dialogView.findViewById(R.id.barcode_input);
         final EditText nameInput = dialogView.findViewById(R.id.name_input);
         final EditText quantityInput = dialogView.findViewById(R.id.quantity_input);
+        final EditText categoryInput = dialogView.findViewById(R.id.category_input);
 
         scan_button = dialogView.findViewById(R.id.scan_button);
 
         barcodeInput.setInputType(InputType.TYPE_CLASS_NUMBER);
         quantityInput.setInputType(InputType.TYPE_CLASS_NUMBER);
         scan_button.setOnClickListener(v -> {
-
-
             IntentIntegrator integrator = new IntentIntegrator(StorageActivity.this);
             integrator.setPrompt("Відскануйте штрих-код");
-
             integrator.initiateScan();
-
-
-
         });
 
         dialogBuilder.setTitle("Додати продукт");
-        dialogBuilder.setPositiveButton("Додати", (dialog, whichButton) -> {
+        dialogBuilder.setCancelable(false); // Не дозволяти закривати вікно при неправильних або відсутніх даних
+        dialogBuilder.setPositiveButton("Додати", null); // Встановлення пустого обробника подій
+
+        dialogBuilder.setNegativeButton("Скасувати", (dialog, whichButton) -> {
+            dialog.dismiss(); // закрити діалогове вікно при натисканні кнопки "Скасувати"
+        });
+
+        AlertDialog alertDialog = dialogBuilder.create();
+        alertDialog.show();
+
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String barcode = barcodeInput.getText().toString().trim();
             String productName = nameInput.getText().toString().trim();
             String quantity = quantityInput.getText().toString().trim();
+            String category = categoryInput.getText().toString().trim();
 
-            if (!barcode.isEmpty() && !productName.isEmpty() && !quantity.isEmpty()) {
+            if (!barcode.isEmpty() && !productName.isEmpty() && !quantity.isEmpty() && !category.isEmpty()) {
                 // Перевірка чи баркод є додатнім цілим числом
                 try {
                     for (Box existingBox : productList) {
@@ -259,16 +275,17 @@ public class StorageActivity extends AppCompatActivity {
                 }
 
                 // Якщо всі перевірки виконані успішно, викликаємо метод addProduct
-                addProduct(currentUserUid, barcode, productName, quantity);
+                addProduct(currentUserUid, barcode, productName, quantity, category);
+                alertDialog.dismiss(); // закрити діалогове вікно після успішного додавання продукту
             } else {
                 Toast.makeText(getApplicationContext(), "Будь ласка, заповніть всі поля", Toast.LENGTH_SHORT).show();
             }
         });
-        dialogBuilder.setNegativeButton("Скасувати", (dialog, whichButton) -> {
-        });
-        AlertDialog alertDialog = dialogBuilder.create();
-        alertDialog.show();
     }
+
+
+
+
 
 
     @Override
@@ -289,9 +306,9 @@ public class StorageActivity extends AppCompatActivity {
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private void addProduct(String currentUserUid, String barcode, String productName, String quantity) {
+    private void addProduct(String currentUserUid, String barcode, String productName, String quantity, String category) {
 
-        Box newBox = new Box(barcode, productName, quantity);
+        Box newBox = new Box(barcode, productName, quantity, category);
         usersRef.child(currentUserUid).child("box").push().setValue(newBox)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -313,8 +330,10 @@ public class StorageActivity extends AppCompatActivity {
                     String barcode = snapshot.child("barcode").getValue(String.class);
                     String productName = snapshot.child("name").getValue(String.class);
                     String quantity = snapshot.child("quantity").getValue(String.class);
+                    String category = snapshot.child("category").getValue(String.class);
 
-                    productList.add(new Box(barcode, productName, quantity));
+
+                    productList.add(new Box(barcode, productName, quantity, category));
                 }
                 productAdapter.notifyDataSetChanged();
             }
@@ -334,20 +353,26 @@ public class StorageActivity extends AppCompatActivity {
 
         final EditText nameInput = dialogView.findViewById(R.id.edit_name_input);
         final EditText quantityInput = dialogView.findViewById(R.id.edit_quantity_input);
+        final EditText categoryInput = dialogView.findViewById((R.id.edit_category_input));
+        TextView barcodeInput = dialogView.findViewById((R.id.barcode_text_view));
+
         quantityInput.setInputType(InputType.TYPE_CLASS_NUMBER);
 
         nameInput.setText(box.getName());
+        barcodeInput.setText(box.getBarcode());
         quantityInput.setText(box.getQuantity());
+        categoryInput.setText(box.getCategory());
+
 
         dialogBuilder.setTitle("Редагувати продукт");
         dialogBuilder.setPositiveButton("Зберегти", (dialog, whichButton) -> {
             String newName = nameInput.getText().toString().trim();
             String newQuantity = quantityInput.getText().toString().trim();
-            if (newName.isEmpty() || newQuantity.isEmpty()) {
+            String newCategory = categoryInput.getText().toString().trim();
+            if (newName.isEmpty() || newQuantity.isEmpty() || newCategory.isEmpty()) {
                 Toast.makeText(getApplicationContext(), "Будь ласка, заповніть всі поля", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             // Перевірка чи нова кількість є додатнім цілим числом
             if (newQuantity.startsWith("0")) {
                 Toast.makeText(getApplicationContext(), "Введіть правильну кількість", Toast.LENGTH_SHORT).show();
@@ -365,59 +390,59 @@ public class StorageActivity extends AppCompatActivity {
             }
 
 
-            updateProduct(box, newName, newQuantity);
+            updateProduct(box, newName, newQuantity, newCategory);
         });
         dialogBuilder.setNegativeButton("Видалити", (dialog, whichButton) -> deleteProduct(box));
         AlertDialog alertDialog = dialogBuilder.create();
         alertDialog.show();
     }
 
-    private void updateProduct(Box box, String newName, String newQuantity) {
-
+    private void updateProduct(Box box, String newName, String newQuantity, String newCategory) {
         String currentUserUid = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
 
         DatabaseReference boxRef = usersRef.child(currentUserUid).child("box");
         Query query = boxRef.orderByChild("barcode").equalTo(box.getBarcode());
 
         query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        // Видалення старого запису
+                        // Удаление старой записи
                         snapshot.getRef().removeValue().addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
-                                // Додавання нового запису з тим самим штрих-кодом, але з оновленими даними
-                                Box newBox = new Box(box.getBarcode(), newName, newQuantity);
+                                // Добавление новой записи с тем же штрих-кодом, но с обновленными данными
+                                Box newBox = new Box(box.getBarcode(), newName, newQuantity, newCategory);
                                 usersRef.child(currentUserUid).child("box").child(box.getBarcode()).setValue(newBox)
                                         .addOnCompleteListener(task1 -> {
                                             if (task1.isSuccessful()) {
-                                                // Оновлення даних в ArrayList
+                                                // Обновление данных в ArrayList
                                                 box.setName(newName);
                                                 box.setQuantity(newQuantity);
+                                                box.setCategory(newCategory);
                                                 productAdapter.notifyDataSetChanged();
-                                                Toast.makeText(getApplicationContext(), "Продукт оновлено", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(getApplicationContext(), "Продукт обновлен", Toast.LENGTH_SHORT).show();
                                             } else {
-                                                Toast.makeText(getApplicationContext(), "Помилка при оновленні продукту", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(getApplicationContext(), "Ошибка при обновлении продукта", Toast.LENGTH_SHORT).show();
                                             }
                                         });
                             } else {
-                                Toast.makeText(getApplicationContext(), "Помилка при видаленні старого запису", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "Ошибка при удалении старой записи", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
                 } else {
-                    Toast.makeText(getApplicationContext(), "Продукт не знайдено", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Продукт не найден", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(getApplicationContext(), "Помилка при оновленні продукту", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Ошибка при обновлении продукта", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
 
 
     private void deleteProduct(Box box) {
@@ -463,11 +488,12 @@ public class StorageActivity extends AppCompatActivity {
                     String barcode = snapshot.child("barcode").getValue(String.class);
                     String productName = snapshot.child("name").getValue(String.class);
                     String quantity = snapshot.child("quantity").getValue(String.class);
+                    String category = snapshot.child("category").getValue(String.class);
 
                     // Перевірка, чи відповідає поточний продукт пошуковому тексту
                     assert productName != null;
                     if (productName.toLowerCase().contains(searchText.toLowerCase())) {
-                        productList.add(new Box(barcode, productName, quantity));
+                        productList.add(new Box(barcode, productName, quantity,category));
                     }
                 }
                 productAdapter.notifyDataSetChanged();
@@ -499,7 +525,8 @@ public class StorageActivity extends AppCompatActivity {
                     String barcode = snapshot.child("barcode").getValue(String.class);
                     String productName = snapshot.child("name").getValue(String.class);
                     String quantity = snapshot.child("quantity").getValue(String.class);
-                    productList.add(new Box(barcode, productName, quantity));
+                    String category= snapshot.child("category").getValue(String.class);
+                    productList.add(new Box(barcode, productName, quantity, category));
                 }
                 productAdapter.notifyDataSetChanged();
                 swipeRefreshLayout.setRefreshing(false);

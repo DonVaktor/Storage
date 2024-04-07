@@ -27,13 +27,13 @@ public  class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.Product
 
 
     public static class ProductViewHolder extends RecyclerView.ViewHolder {
-        public TextView barcodeTextView;
+        public TextView categoryTextView;
         public TextView nameTextView;
         public TextView quantityTextView;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
-            barcodeTextView = itemView.findViewById(R.id.barcode_text_view);
+            categoryTextView = itemView.findViewById(R.id.category_text_view);
             nameTextView = itemView.findViewById(R.id.name_text_view);
             quantityTextView = itemView.findViewById(R.id.quantity_text_view);
         }
@@ -65,7 +65,7 @@ public  class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.Product
 
         Box currentItem = productList.get(position);
 
-        holder.barcodeTextView.setText(currentItem.getBarcode());
+        holder.categoryTextView.setText(currentItem.getCategory());
         holder.nameTextView.setText(currentItem.getName());
         holder.quantityTextView.setText(currentItem.getQuantity());
 
