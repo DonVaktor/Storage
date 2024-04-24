@@ -3,6 +3,8 @@ package com.example.com.Models;
 public class Box {
     private final String barcode;
     private String name;
+
+    private String imageUrl;
     private String quantity;
     private String category;
 
@@ -14,11 +16,12 @@ public class Box {
 
 
 
-    public Box(String barcode, String name, String quantity, String category) {
+    public Box(String barcode, String name, String quantity, String category, String imageUrl) {
         this.barcode = barcode;
         this.name = name;
         this.quantity = quantity;
         this.category = category;
+        this.imageUrl = imageUrl;
     }
 
     public void setName(String name) {
@@ -39,5 +42,12 @@ public class Box {
 
     public String getQuantity() {
         return quantity;
+    }
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

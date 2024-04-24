@@ -51,6 +51,10 @@ dependencies {
     //noinspection GradleCompatible
     implementation("com.android.support:cardview-v7:28.0.0")
 
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation("com.squareup.picasso:picasso:2.8")
+
+
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

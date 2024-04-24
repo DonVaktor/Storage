@@ -8,11 +8,13 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,17 +37,46 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+import com.squareup.picasso.Picasso;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Objects;
 
+
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.IOException;
+import android.widget.Toast;
+import android.widget.ImageView;
 
 public class StorageActivity extends AppCompatActivity {
     public StorageActivity() {
         currentUserUid = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
     }
     private String searchText = "";
+    private String imageUrl;
     private final String currentUserUid;
 
 
@@ -54,7 +85,8 @@ public class StorageActivity extends AppCompatActivity {
     FirebaseAuth auth;
     SwipeRefreshLayout swipeRefreshLayout;
     TextView filter_text;
-    Button scan_button;
+    ImageView imageView;
+    Button scan_button, search_photo_button;
 
     DatabaseReference usersRef;
 
@@ -200,8 +232,10 @@ public class StorageActivity extends AppCompatActivity {
     }
 
 
+
     private EditText barcodeInput;
     private void showDialogToAddProduct(final String currentUserUid) {
+        imageUrl = null;
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_add_box, null);
@@ -212,7 +246,10 @@ public class StorageActivity extends AppCompatActivity {
         final EditText quantityInput = dialogView.findViewById(R.id.quantity_input);
         final EditText categoryInput = dialogView.findViewById(R.id.category_input);
 
+
         scan_button = dialogView.findViewById(R.id.scan_button);
+        search_photo_button = dialogView.findViewById(R.id.search_photo_button);
+        imageView = dialogView.findViewById(R.id.imageView);
 
         barcodeInput.setInputType(InputType.TYPE_CLASS_NUMBER);
         quantityInput.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -275,13 +312,77 @@ public class StorageActivity extends AppCompatActivity {
                 }
 
                 // Якщо всі перевірки виконані успішно, викликаємо метод addProduct
-                addProduct(currentUserUid, barcode, productName, quantity, category);
+                addProduct(currentUserUid, barcode, productName, quantity, category, imageUrl);
                 alertDialog.dismiss(); // закрити діалогове вікно після успішного додавання продукту
             } else {
                 Toast.makeText(getApplicationContext(), "Будь ласка, заповніть всі поля", Toast.LENGTH_SHORT).show();
             }
         });
+        search_photo_button.setOnClickListener(v -> {
+            // Получение штрих-кода из поля ввода
+            String barcode = barcodeInput.getText().toString().trim();
+
+            // Проверка, что штрих-код не пустой
+            if (!barcode.isEmpty()) {
+                // Формирование запроса к API Barcode Lookup
+                String apiKey = "jrkgiige61gxc40cds3gs8qf4it85r"; // Замените на ваш API-ключ
+                String apiUrl = "https://api.barcodelookup.com/v3/products?barcode=" + barcode + "&key=" + apiKey;
+
+                // Создание запроса с использованием OkHttp
+                OkHttpClient client = new OkHttpClient();
+
+                Request request = new Request.Builder()
+                        .url(apiUrl)
+                        .build();
+
+                // Отправка запроса и обработка ответа
+                client.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        // Обработка ошибки запроса
+                        runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Ошибка запроса: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        if (response.isSuccessful()) {
+
+                            String responseData = response.body().string();
+                            Log.d("API Response", responseData);
+                            try {
+                                // Предполагается, что API возвращает данные в формате JSON
+                                JSONObject jsonResponse = new JSONObject(responseData);
+
+                                // Извлечение данных о продукте
+                                JSONObject product = jsonResponse.getJSONArray("products").getJSONObject(0);
+
+                                // Получение URL изображения продукта
+                                imageUrl = product.getJSONArray("images").getString(0);
+
+
+                                if (!imageUrl.isEmpty()) {
+                                    // Обновление интерфейса пользователя изображением продукта
+                                    runOnUiThread(() -> {
+                                        Picasso.get().load(imageUrl).into(imageView);
+                                    });
+                                } else {
+                                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Изображение продукта не найдено", Toast.LENGTH_SHORT).show());
+                                }
+                            } catch (JSONException e) {
+                                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Ошибка обработки ответа API: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                            }
+                        } else {
+                            runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Ошибка ответа API: " + response.message(), Toast.LENGTH_SHORT).show());
+                        }
+                    }
+                });
+            } else {
+                Toast.makeText(getApplicationContext(), "Введите штрих-код", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
+
 
 
 
@@ -306,9 +407,9 @@ public class StorageActivity extends AppCompatActivity {
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private void addProduct(String currentUserUid, String barcode, String productName, String quantity, String category) {
+    private void addProduct(String currentUserUid, String barcode, String productName, String quantity, String category, String imageUrl) {
 
-        Box newBox = new Box(barcode, productName, quantity, category);
+        Box newBox = new Box(barcode, productName, quantity, category, imageUrl);
         usersRef.child(currentUserUid).child("box").push().setValue(newBox)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -331,9 +432,10 @@ public class StorageActivity extends AppCompatActivity {
                     String productName = snapshot.child("name").getValue(String.class);
                     String quantity = snapshot.child("quantity").getValue(String.class);
                     String category = snapshot.child("category").getValue(String.class);
+                    String imageUrl = snapshot.child("imageUrl").getValue(String.class);
 
 
-                    productList.add(new Box(barcode, productName, quantity, category));
+                    productList.add(new Box(barcode, productName, quantity, category, imageUrl));
                 }
                 productAdapter.notifyDataSetChanged();
             }
@@ -353,10 +455,18 @@ public class StorageActivity extends AppCompatActivity {
 
         final EditText nameInput = dialogView.findViewById(R.id.edit_name_input);
         final EditText quantityInput = dialogView.findViewById(R.id.edit_quantity_input);
-        final EditText categoryInput = dialogView.findViewById((R.id.edit_category_input));
+        final EditText categoryInput = dialogView.findViewById(R.id.edit_category_input);
         TextView barcodeInput = dialogView.findViewById((R.id.barcode_text_view));
+        ImageView image_input = dialogView.findViewById(R.id.image_input);
 
-        quantityInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+
+        if (box.getImageUrl() != null && !box.getImageUrl().isEmpty()) {
+            Picasso.get().load(box.getImageUrl()).into(image_input);
+            image_input.setVisibility(View.VISIBLE); // Показываем ImageView, если есть URL
+        } else {
+            image_input.setVisibility(View.GONE); // Скрываем ImageView, если URL пустой или null
+        }
 
         nameInput.setText(box.getName());
         barcodeInput.setText(box.getBarcode());
@@ -364,6 +474,8 @@ public class StorageActivity extends AppCompatActivity {
         categoryInput.setText(box.getCategory());
 
 
+
+        quantityInput.setInputType(InputType.TYPE_CLASS_NUMBER);
         dialogBuilder.setTitle("Редагувати продукт");
         dialogBuilder.setPositiveButton("Зберегти", (dialog, whichButton) -> {
             String newName = nameInput.getText().toString().trim();
@@ -412,7 +524,7 @@ public class StorageActivity extends AppCompatActivity {
                         snapshot.getRef().removeValue().addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 // Добавление новой записи с тем же штрих-кодом, но с обновленными данными
-                                Box newBox = new Box(box.getBarcode(), newName, newQuantity, newCategory);
+                                Box newBox = new Box(box.getBarcode(), newName, newQuantity, newCategory, box.getImageUrl());
                                 usersRef.child(currentUserUid).child("box").child(box.getBarcode()).setValue(newBox)
                                         .addOnCompleteListener(task1 -> {
                                             if (task1.isSuccessful()) {
@@ -489,11 +601,12 @@ public class StorageActivity extends AppCompatActivity {
                     String productName = snapshot.child("name").getValue(String.class);
                     String quantity = snapshot.child("quantity").getValue(String.class);
                     String category = snapshot.child("category").getValue(String.class);
+                    String imageUrl = snapshot.child("imageUrl").getValue(String.class);
 
                     // Перевірка, чи відповідає поточний продукт пошуковому тексту
                     assert productName != null;
                     if (productName.toLowerCase().contains(searchText.toLowerCase())) {
-                        productList.add(new Box(barcode, productName, quantity,category));
+                        productList.add(new Box(barcode, productName, quantity, category,imageUrl));
                     }
                 }
                 productAdapter.notifyDataSetChanged();
@@ -526,7 +639,8 @@ public class StorageActivity extends AppCompatActivity {
                     String productName = snapshot.child("name").getValue(String.class);
                     String quantity = snapshot.child("quantity").getValue(String.class);
                     String category= snapshot.child("category").getValue(String.class);
-                    productList.add(new Box(barcode, productName, quantity, category));
+                    String imageUrl = snapshot.child("imageUrl").getValue(String.class);
+                    productList.add(new Box(barcode, productName, quantity, category, imageUrl));
                 }
                 productAdapter.notifyDataSetChanged();
                 swipeRefreshLayout.setRefreshing(false);

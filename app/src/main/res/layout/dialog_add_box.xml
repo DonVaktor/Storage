@@ -119,6 +119,20 @@
                 android:hint="Кількість"
                 android:background="@null"/>
 
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:src="@drawable/plus" />
+
+            <Button
+                android:id="@+id/search_photo_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Знайти фото" />
+
         </com.google.android.material.textfield.TextInputLayout>
     </androidx.cardview.widget.CardView>
 

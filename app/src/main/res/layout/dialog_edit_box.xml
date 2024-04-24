@@ -13,16 +13,23 @@
         android:orientation="vertical">
 
         <!-- Static Text Field -->
+
+        <!-- Editable Field 1 -->
+        <ImageView
+            android:id="@+id/image_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/plus" />
+
         <TextView
             android:id="@+id/barcode_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Static Text"
-            android:textSize="16sp"
             android:gravity="center_horizontal"
-            android:padding="8dp"/>
+            android:padding="8dp"
+            android:text="Static Text"
+            android:textSize="16sp" />
 
-        <!-- Editable Field 1 -->
         <TextView
             android:id="@+id/edit_name_text_view"
             android:layout_width="wrap_content"
