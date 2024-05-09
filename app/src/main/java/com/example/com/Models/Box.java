@@ -8,13 +8,6 @@ public class Box {
     private String quantity;
     private String category;
 
-    public String getCategory() { return category;}
-
-    public void setCategory(String category) { this.category = category;}
-
-
-
-
 
     public Box(String barcode, String name, String quantity, String category, String imageUrl) {
         this.barcode = barcode;
@@ -23,6 +16,9 @@ public class Box {
         this.category = category;
         this.imageUrl = imageUrl;
     }
+    public String getCategory() { return category;}
+
+    public void setCategory(String category) { this.category = category;}
 
     public void setName(String name) {
         this.name = name;

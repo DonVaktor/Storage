@@ -1,9 +1,12 @@
 package com.example.com;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
@@ -39,12 +42,8 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.squareup.picasso.Picasso;
 
-import java.io.BufferedReader;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Objects;
@@ -55,21 +54,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 
 import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.json.JSONException;
-import org.json.JSONObject;
-import java.io.IOException;
-import android.widget.Toast;
-import android.widget.ImageView;
+
 
 public class StorageActivity extends AppCompatActivity {
     public StorageActivity() {
@@ -93,6 +83,51 @@ public class StorageActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     ProductAdapter productAdapter;
     ArrayList<Box> productList;
+    public void animateError(View view) {
+        if (view != null) {
+            EditText editText = (EditText) view;
+            editText.setTextColor(Color.parseColor("#e03a40"));
+            editText.setHintTextColor(Color.RED);
+
+            // Створення анімації масштабу
+            ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(view, "scaleX", 0.9f);
+            ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(view, "scaleY", 0.9f);
+            scaleDownX.setDuration(300);
+            scaleDownY.setDuration(300);
+
+            ObjectAnimator scaleUpX = ObjectAnimator.ofFloat(view, "scaleX", 1.0f);
+            ObjectAnimator scaleUpY = ObjectAnimator.ofFloat(view, "scaleY", 1.0f);
+            scaleUpX.setDuration(300);
+            scaleUpY.setDuration(300);
+
+            // Створення набору анімації
+            AnimatorSet scaleDown = new AnimatorSet();
+            scaleDown.play(scaleDownX).with(scaleDownY);
+
+            AnimatorSet scaleUp = new AnimatorSet();
+            scaleUp.play(scaleUpX).with(scaleUpY);
+
+            // Об'єднання анімацій у набір анімацій
+            AnimatorSet pulse = new AnimatorSet();
+            pulse.play(scaleUp).after(scaleDown);
+
+            // Запуск анімації
+            pulse.start();
+        } else {
+            Log.e("animateError", "View is null");
+        }
+    }
+
+
+    public void animateGood(View view) {
+        if (view instanceof EditText) {
+            EditText editText = (EditText) view;
+            editText.setTextColor(Color.BLACK);
+        } else {
+            Log.e("animateGood", "View is not an instance of EditText");
+        }
+    }
+
 
 
     @SuppressLint("NotifyDataSetChanged")
@@ -101,7 +136,7 @@ public class StorageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_storage);
 
-
+        // Ініціалізація UI елементів
         add_button = findViewById(R.id.add_button);
         settings_button = findViewById(R.id.settings_button);
         filter_text = findViewById(R.id.filter_text);
@@ -109,8 +144,10 @@ public class StorageActivity extends AppCompatActivity {
         search_field = findViewById(R.id.search_field);
         swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
 
+        // Отримуємо поточного користувача
         auth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
+
 
         if (currentUser == null) {
             Toast.makeText(getApplicationContext(), "Спочатку авторизуйтесь", Toast.LENGTH_LONG).show();
@@ -118,11 +155,12 @@ public class StorageActivity extends AppCompatActivity {
             return;
         }
 
-
+        // Встановлюємо слухача оновлення для SwipeRefreshLayout
         swipeRefreshLayout.setOnRefreshListener(() -> refreshData(currentUserUid));
 
         usersRef = FirebaseDatabase.getInstance().getReference().child("Users");
 
+        // Створюємо список продуктів та адаптер для RecyclerView
         productList = new ArrayList<>();
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
@@ -130,12 +168,11 @@ public class StorageActivity extends AppCompatActivity {
         productAdapter = new ProductAdapter(productList);
         recyclerView.setAdapter(productAdapter);
 
-
-
+        // Встановлюємо слухач кнопки додавання продукту
         add_button.setOnClickListener(v -> showDialogToAddProduct(currentUserUid));
 
+        // Встановлюємо слухач кнопки налаштувань
         settings_button.setOnClickListener(v -> {
-            // Ваш код для запуску нової активності або фрагмента
             Intent intent = new Intent(StorageActivity.this, SettingsActivity.class);
             startActivity(intent);
         });
@@ -151,7 +188,6 @@ public class StorageActivity extends AppCompatActivity {
                 // Отримання вибраного фільтру
                 String selectedFilter = filterOptions[which];
 
-                // Обробка вибраного фільтру
                 switch (which) {
                     case 0:
                         // Сортування від А до Я
@@ -232,9 +268,9 @@ public class StorageActivity extends AppCompatActivity {
     }
 
 
-
-    private EditText barcodeInput;
+     private EditText barcodeInput;
     private void showDialogToAddProduct(final String currentUserUid) {
+
         imageUrl = null;
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
@@ -271,123 +307,129 @@ public class StorageActivity extends AppCompatActivity {
         alertDialog.show();
 
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            // Отримуємо введені користувачем дані
             String barcode = barcodeInput.getText().toString().trim();
             String productName = nameInput.getText().toString().trim();
             String quantity = quantityInput.getText().toString().trim();
             String category = categoryInput.getText().toString().trim();
 
-            if (!barcode.isEmpty() && !productName.isEmpty() && !quantity.isEmpty() && !category.isEmpty()) {
-                // Перевірка чи баркод є додатнім цілим числом
-                try {
-                    for (Box existingBox : productList) {
-                        if (existingBox.getBarcode().equals(barcode)) {
-                            Toast.makeText(getApplicationContext(), "Штрих-код вже існує, введіть унікальний штрих-код", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                    }
+            // Ініціалізуємо змінну для відстеження статусу перевірок
+            boolean allFieldsValid = true;
 
-                    if (!barcode.matches("\\d+")) {
-                        Toast.makeText(getApplicationContext(), "Невірно введений штрихкод", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                    Toast.makeText(getApplicationContext(), "Невірно введений штрихкод", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            // Перевірка заповненості полів
+            if (barcode.isEmpty() || productName.isEmpty() || quantity.isEmpty() || category.isEmpty()) {
+                Toast.makeText(getApplicationContext(), "Будь ласка, заповніть всі поля", Toast.LENGTH_SHORT).show();
+                allFieldsValid = false;
+            }
 
-                // Перевірка чи кількість є додатним цілим числом
-                if (quantity.startsWith("0")) {
-                    Toast.makeText(getApplicationContext(), "Введіть правильну кількість", Toast.LENGTH_SHORT).show();
-                    return;
+            // Перевірка унікальності штрих-коду
+            if (allFieldsValid) {
+                for (Box existingBox : productList) {
+                    if (existingBox.getBarcode().equals(barcode)) {
+                        Toast.makeText(getApplicationContext(), "Штрих-код вже існує, введіть унікальний штрих-код", Toast.LENGTH_SHORT).show();
+                        animateError(barcodeInput);
+                        allFieldsValid = false;
+                        break;
+                    }
                 }
+            }
+
+            // Перевірка правильності штрих-коду
+            if (allFieldsValid && !barcode.matches("\\d+")) {
+                Toast.makeText(getApplicationContext(), "Невірно введений штрихкод", Toast.LENGTH_SHORT).show();
+                animateError(barcodeInput);
+                allFieldsValid = false;
+            } else if (allFieldsValid && barcode.matches("\\d+")) {
+                animateGood(barcodeInput);
+            }
+
+            // Перевірка правильності кількості
+            if (allFieldsValid) {
                 try {
                     int number = Integer.parseInt(quantity);
                     if (number <= 0) {
                         Toast.makeText(getApplicationContext(), "Введіть натуральне число", Toast.LENGTH_SHORT).show();
-                        return;
+                        allFieldsValid = false;
                     }
                 } catch (NumberFormatException e) {
                     Toast.makeText(getApplicationContext(), "Введіть ціле число", Toast.LENGTH_SHORT).show();
-                    return;
+                    allFieldsValid = false;
                 }
+            }
 
-                // Якщо всі перевірки виконані успішно, викликаємо метод addProduct
+            // Якщо всі перевірки пройдені, викликаємо метод addProduct
+            if (allFieldsValid) {
                 addProduct(currentUserUid, barcode, productName, quantity, category, imageUrl);
-                alertDialog.dismiss(); // закрити діалогове вікно після успішного додавання продукту
-            } else {
-                Toast.makeText(getApplicationContext(), "Будь ласка, заповніть всі поля", Toast.LENGTH_SHORT).show();
+                alertDialog.dismiss(); // Закриваємо діалогове вікно після успішного додавання продукту
             }
         });
+
         search_photo_button.setOnClickListener(v -> {
-            // Получение штрих-кода из поля ввода
+            // Отримання штрих-коду з поля введення
             String barcode = barcodeInput.getText().toString().trim();
 
-            // Проверка, что штрих-код не пустой
+            // Перевірка, що штрих-код не порожній
             if (!barcode.isEmpty()) {
-                // Формирование запроса к API Barcode Lookup
-                String apiKey = "jrkgiige61gxc40cds3gs8qf4it85r"; // Замените на ваш API-ключ
+                // Формування запиту до API Barcode Lookup
+                String apiKey = "jrkgiige61gxc40cds3gs8qf4it85r"; // Замість цього вставте ваш ключ API
                 String apiUrl = "https://api.barcodelookup.com/v3/products?barcode=" + barcode + "&key=" + apiKey;
 
-                // Создание запроса с использованием OkHttp
+                // Створення запиту за допомогою OkHttp
                 OkHttpClient client = new OkHttpClient();
 
                 Request request = new Request.Builder()
                         .url(apiUrl)
                         .build();
 
-                // Отправка запроса и обработка ответа
+                // Відправка запиту та обробка відповіді
                 client.newCall(request).enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
-                        // Обработка ошибки запроса
-                        runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Ошибка запроса: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                        // Обробка помилки запиту
+                        runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Помилка запиту: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                     }
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         if (response.isSuccessful()) {
-
                             String responseData = response.body().string();
                             Log.d("API Response", responseData);
                             try {
-                                // Предполагается, что API возвращает данные в формате JSON
+                                // Передбачається, що API повертає дані у форматі JSON
                                 JSONObject jsonResponse = new JSONObject(responseData);
 
-                                // Извлечение данных о продукте
+                                // Отримання даних про продукт
                                 JSONObject product = jsonResponse.getJSONArray("products").getJSONObject(0);
 
-                                // Получение URL изображения продукта
+                                // Отримання URL зображення продукту
                                 imageUrl = product.getJSONArray("images").getString(0);
 
-
                                 if (!imageUrl.isEmpty()) {
-                                    // Обновление интерфейса пользователя изображением продукта
+                                    // Оновлення інтерфейсу користувача зображенням продукту
                                     runOnUiThread(() -> {
-                                        Picasso.get().load(imageUrl).into(imageView);
+                                        Picasso.get()
+                                                .load(imageUrl)
+                                                .resize(400, 400) // Зменшуємо зображення до 400x400 пікселів
+                                                .into(imageView);
+                                        imageView.setVisibility(View.VISIBLE);
                                     });
                                 } else {
-                                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Изображение продукта не найдено", Toast.LENGTH_SHORT).show());
+                                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Зображення продукту не знайдено", Toast.LENGTH_SHORT).show());
                                 }
                             } catch (JSONException e) {
-                                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Ошибка обработки ответа API: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Помилка обробки відповіді API: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                             }
                         } else {
-                            runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Ошибка ответа API: " + response.message(), Toast.LENGTH_SHORT).show());
+                            runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Помилка відповіді API: " + response.message(), Toast.LENGTH_SHORT).show());
                         }
                     }
                 });
             } else {
-                Toast.makeText(getApplicationContext(), "Введите штрих-код", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Введіть штрих-код", Toast.LENGTH_SHORT).show();
             }
         });
+
     }
-
-
-
-
-
-
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -434,18 +476,48 @@ public class StorageActivity extends AppCompatActivity {
                     String category = snapshot.child("category").getValue(String.class);
                     String imageUrl = snapshot.child("imageUrl").getValue(String.class);
 
-
                     productList.add(new Box(barcode, productName, quantity, category, imageUrl));
                 }
                 productAdapter.notifyDataSetChanged();
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(getApplicationContext(), "Помилка при отриманні даних", Toast.LENGTH_SHORT).show();
             }
         });
     }
+    private void showEditImageUrlDialog(final Box box, final ImageView imageInput) {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_edit_url, null);
+        dialogBuilder.setView(dialogView);
+
+        final EditText urlInput = dialogView.findViewById(R.id.edit_url_input);
+        urlInput.setText(box.getImageUrl());
+
+        dialogBuilder.setTitle("Редагувати URL зображення");
+        dialogBuilder.setPositiveButton("Зберегти", (dialog, whichButton) -> {
+            String newUrl = urlInput.getText().toString().trim();
+            if (!newUrl.isEmpty()) {
+                animateGood(urlInput);
+                box.setImageUrl(newUrl);
+                // Зменшення розміру зображення до 400x400 пікселів перед відображенням
+                Picasso.get()
+                        .load(newUrl)
+                        .resize(400, 400)
+                        .into(imageInput);
+                imageInput.setVisibility(View.VISIBLE);
+            } else {
+                animateError(urlInput);
+                Toast.makeText(getApplicationContext(), "URL не може бути порожнім", Toast.LENGTH_SHORT).show();
+            }
+        });
+        dialogBuilder.setNegativeButton("Скасувати", (dialog, whichButton) -> dialog.dismiss());
+        AlertDialog alertDialog = dialogBuilder.create();
+        alertDialog.show();
+    }
+
+
 
     private void showEditBoxDialog(final Box box) {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
@@ -456,16 +528,17 @@ public class StorageActivity extends AppCompatActivity {
         final EditText nameInput = dialogView.findViewById(R.id.edit_name_input);
         final EditText quantityInput = dialogView.findViewById(R.id.edit_quantity_input);
         final EditText categoryInput = dialogView.findViewById(R.id.edit_category_input);
-        TextView barcodeInput = dialogView.findViewById((R.id.barcode_text_view));
-        ImageView image_input = dialogView.findViewById(R.id.image_input);
+        TextView barcodeInput = dialogView.findViewById(R.id.barcode_text_view);
+        ImageView imageInput = dialogView.findViewById(R.id.image_input);
 
-
+        imageInput.setOnClickListener(v -> showEditImageUrlDialog(box, imageInput));
 
         if (box.getImageUrl() != null && !box.getImageUrl().isEmpty()) {
-            Picasso.get().load(box.getImageUrl()).into(image_input);
-            image_input.setVisibility(View.VISIBLE); // Показываем ImageView, если есть URL
-        } else {
-            image_input.setVisibility(View.GONE); // Скрываем ImageView, если URL пустой или null
+            Picasso.get()
+                    .load(box.getImageUrl())
+                    .resize(400, 400)
+                    .into(imageInput);
+            imageInput.setVisibility(View.VISIBLE);
         }
 
         nameInput.setText(box.getName());
@@ -473,23 +546,26 @@ public class StorageActivity extends AppCompatActivity {
         quantityInput.setText(box.getQuantity());
         categoryInput.setText(box.getCategory());
 
-
-
         quantityInput.setInputType(InputType.TYPE_CLASS_NUMBER);
         dialogBuilder.setTitle("Редагувати продукт");
+
         dialogBuilder.setPositiveButton("Зберегти", (dialog, whichButton) -> {
             String newName = nameInput.getText().toString().trim();
             String newQuantity = quantityInput.getText().toString().trim();
             String newCategory = categoryInput.getText().toString().trim();
+
             if (newName.isEmpty() || newQuantity.isEmpty() || newCategory.isEmpty()) {
                 Toast.makeText(getApplicationContext(), "Будь ласка, заповніть всі поля", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             // Перевірка чи нова кількість є додатнім цілим числом
             if (newQuantity.startsWith("0")) {
+                animateError(quantityInput);
                 Toast.makeText(getApplicationContext(), "Введіть правильну кількість", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             try {
                 int number = Integer.parseInt(newQuantity);
                 if (number <= 0) {
@@ -501,13 +577,14 @@ public class StorageActivity extends AppCompatActivity {
                 return;
             }
 
-
             updateProduct(box, newName, newQuantity, newCategory);
         });
+
         dialogBuilder.setNegativeButton("Видалити", (dialog, whichButton) -> deleteProduct(box));
         AlertDialog alertDialog = dialogBuilder.create();
         alertDialog.show();
     }
+
 
     private void updateProduct(Box box, String newName, String newQuantity, String newCategory) {
         String currentUserUid = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();

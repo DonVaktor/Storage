@@ -169,13 +169,10 @@ public class MainActivity extends AppCompatActivity {
     private void createUser(String email, String password, String name, String number, AlertDialog alertDialog) {
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
-                    PasswordHasher.hashPassword(password);
-
                     User user = new User();
-                    user.setEmail();
                     user.setNumber(number);
                     user.setName(name);
-                    user.setPassword();
+                    user.setEmail(email);
 
                     users.child(Objects.requireNonNull(auth.getCurrentUser()).getUid())
                             .setValue(user)

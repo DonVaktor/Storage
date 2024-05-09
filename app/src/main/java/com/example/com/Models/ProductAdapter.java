@@ -13,10 +13,11 @@ import com.example.com.R;
 
 import java.util.ArrayList;
 
-public  class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
-    private final ArrayList<Box> productList;
-    private OnItemClickListener listener;
+public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
+    private final ArrayList<Box> productList;  // Список продуктів для відображення в RecyclerView
+    private OnItemClickListener listener;  // Слухач для натискання на елементи
 
+    // Інтерфейс для обробки натискання на елемент
     public interface OnItemClickListener {
         void onItemClick(Box box);
     }
@@ -25,7 +26,7 @@ public  class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.Product
         this.listener = listener;
     }
 
-
+    // ViewHolder для відображення елементів в RecyclerView
     public static class ProductViewHolder extends RecyclerView.ViewHolder {
         public TextView categoryTextView;
         public TextView nameTextView;
@@ -42,12 +43,11 @@ public  class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.Product
     public ProductAdapter(ArrayList<Box> productList) {
         this.productList = productList;
     }
+
     @SuppressLint("NotifyDataSetChanged")
     public void clear() {
-        if (productList != null) {
-            productList.clear();
-            notifyDataSetChanged();
-        }
+        productList.clear();  // Очистити список продуктів
+        notifyDataSetChanged();  // Повідомити про зміни в адаптері
     }
 
     @NonNull
@@ -59,22 +59,22 @@ public  class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.Product
 
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
-        if (productList == null || position < 0 || position >= productList.size()) {
-            return; // Перевірка на null і правильність позиції
+        // Перевірка валідності позиції
+        if (position < 0 || position >= productList.size()) {
+            return;
         }
 
         Box currentItem = productList.get(position);
 
+        // Встановлення даних в ViewHolder
         holder.categoryTextView.setText(currentItem.getCategory());
         holder.nameTextView.setText(currentItem.getName());
         holder.quantityTextView.setText(currentItem.getQuantity());
 
+        // Встановлення слухача для натискання на елемент
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                int position1 = holder.getAdapterPosition();
-                if (position1 != RecyclerView.NO_POSITION) {
-                    listener.onItemClick(productList.get(position1));
-                }
+            if (listener != null && holder.getAdapterPosition() != RecyclerView.NO_POSITION) {
+                listener.onItemClick(productList.get(holder.getAdapterPosition()));
             }
         });
     }

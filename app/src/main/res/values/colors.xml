@@ -9,7 +9,9 @@
     <color name="light_red"> #e03a40</color>
     <color name="dark_purple"> #904ba6</color>
 
-    <color name="middle_purple">   #b866d1</color>
-    <color name="ultra_light_purple">    #d581f0</color>
+    <color name="ultra_light_purple">  #e29ff5</color>
+    <color name="extra_light_purple">#ECBAFF</color>
+
+
 
 </resources>
