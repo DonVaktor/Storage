@@ -28,7 +28,7 @@
         <com.rengwuxian.materialedittext.MaterialEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/login_text"
+            android:hint="Ім'я"
             android:id="@+id/field_login"
             android:text=""
             android:inputType="textPersonName"

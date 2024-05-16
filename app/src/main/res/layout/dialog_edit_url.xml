@@ -1,13 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp">
 
-    <EditText
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:padding="8dp"
+        android:elevation="4dp"
+        android:background="#F5F5F5">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:boxBackgroundMode="none"
+            app:hintEnabled="true">
+
+     <EditText
         android:id="@+id/edit_url_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Введіть URL зображення" />
-</LinearLayout>
+
+    </com.google.android.material.textfield.TextInputLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.cardview.widget.CardView>

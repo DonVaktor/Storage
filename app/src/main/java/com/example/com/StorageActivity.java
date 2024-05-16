@@ -371,7 +371,7 @@ public class StorageActivity extends AppCompatActivity {
             // Перевірка, що штрих-код не порожній
             if (!barcode.isEmpty()) {
                 // Формування запиту до API Barcode Lookup
-                String apiKey = "jrkgiige61gxc40cds3gs8qf4it85r"; // Замість цього вставте ваш ключ API
+                String apiKey = "2qbuzywesskrvvddsf5e3j6jkcwoui"; // Замість цього вставте ваш ключ API
                 String apiUrl = "https://api.barcodelookup.com/v3/products?barcode=" + barcode + "&key=" + apiKey;
 
                 // Створення запиту за допомогою OkHttp
@@ -495,7 +495,7 @@ public class StorageActivity extends AppCompatActivity {
         final EditText urlInput = dialogView.findViewById(R.id.edit_url_input);
         urlInput.setText(box.getImageUrl());
 
-        dialogBuilder.setTitle("Редагувати URL зображення");
+        dialogBuilder.setTitle("Редагувати зображення");
         dialogBuilder.setPositiveButton("Зберегти", (dialog, whichButton) -> {
             String newUrl = urlInput.getText().toString().trim();
             if (!newUrl.isEmpty()) {
